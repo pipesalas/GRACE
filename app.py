@@ -51,7 +51,7 @@ def main():
             st.write("""Although choosing the right number of clusters is a hard decision, there are several heuristics that help us in that task.
                     We have avaiable three metrics: [inertia](%s),  [silhouette score](%s) y [davies bouldin score](%s) which indicates how well clusterized was the data""" % (url_inertia, url_silhouette, url_davies_bouldin))
             
-            plot_clustering_optimal_k(centro)
+            plot_clustering_optimal_k(centro, figure_width=900, plot_plotly_web=plot_web_clustering)
 
         tab_mapa, tab_caracterizacion, tab_numero_coordenadas  = st.tabs(['Map of each cluster', 'Cluster characterization', 'Number of coordinates of each cluster'])
         with tab_mapa:
@@ -75,7 +75,7 @@ def main():
 
 
 def plot_filogenia(
-    dataf: pd.DataFrame, min_cluster: int, max_cluster: int, plot_plotly_web: bool = False
+    dataf: pd.DataFrame, min_cluster: int, max_cluster: int, plot_plotly_web: bool = False, figure_width: int = 1000
 ) -> go.Figure:
     """Grafica la filogenia de una base clusterizada con diferentes k."""
     labels, source, target, value = calculate_labels_source_target_value(
@@ -105,7 +105,7 @@ def plot_filogenia(
     fig.update_layout(
         title_text="Phylogeny of each cluster",
         font_size=10,
-        width=1000,
+        width=figure_width,
     )
     if plot_plotly_web:
         py.plot(fig, filename="filogenia", auto_open = True)
@@ -150,22 +150,22 @@ def calculate_labels_source_target_value(
     return labels, source, target, value
 
 
-def plot_clustering_optimal_k(centro: str, plot_plotly_web: bool = False) -> None:
+def plot_clustering_optimal_k(centro: str, plot_plotly_web: bool = False, figure_width=1000) -> None:
     inertia, silhouette_scores, davies_bouldin_scores = load_scores(centro=centro)
     
     df_cluster = pd.read_parquet(f'data_for_app/data_cluster_trend_{centro}.parquet')
     tab1, tab2, tab3, tab4 = st.tabs(['Inertia', 'Silhouette', 'Davies Bouldin', 'Filogenia'])
     with tab1:
-        fig_inertia = plot_elbow(inertia, figure_width=1000, plot_plotly_web=plot_plotly_web)
+        fig_inertia = plot_elbow(inertia, figure_width=figure_width, plot_plotly_web=plot_plotly_web)
         st.plotly_chart(fig_inertia)
     with tab2:
-        fig_silhouette = plot_silhouette(silhouette_scores, figure_width=1000, plot_plotly_web=plot_plotly_web)
+        fig_silhouette = plot_silhouette(silhouette_scores, figure_width=figure_width, plot_plotly_web=plot_plotly_web)
         st.plotly_chart(fig_silhouette)
     with tab3:
-        fig_davies_bouldin = plot_davies_bouldin(davies_bouldin_scores, figure_width=1000, plot_plotly_web=plot_plotly_web)
+        fig_davies_bouldin = plot_davies_bouldin(davies_bouldin_scores, figure_width=figure_width, plot_plotly_web=plot_plotly_web)
         st.plotly_chart(fig_davies_bouldin)
     with tab4:
-        fig_filogenia = plot_filogenia(df_cluster, min_cluster=2, max_cluster=8, plot_plotly_web=plot_plotly_web)
+        fig_filogenia = plot_filogenia(df_cluster, min_cluster=2, max_cluster=8, plot_plotly_web=plot_plotly_web, figure_width=figure_width)
         st.plotly_chart(fig_filogenia)
 
 
@@ -313,7 +313,7 @@ def plot_caracterizacion_clusters(num_cluster: int, centro: str, figure_width: i
     median_representative = {}
     for cluster in df[f'clusters_{int(num_cluster)}'].unique():
 
-        data = df.query(f'clusters_{int(num_cluster)}=={cluster}').sample(60, replace=True)
+        data = df.query(f'clusters_{int(num_cluster)}=={cluster}').sample(200, replace=True)
         trends_individuales = [go.Scatter(x=cols_date, y=data.iloc[j], opacity=0.2, mode='lines',
                                         marker_color='#B7B7B7', showlegend=False, hoverinfo='skip') for j in range(data.shape[0])]
         true_median = np.median(data[cols_date].values, axis=0)
@@ -367,7 +367,8 @@ def plot_numero_coordenadas(centro: str, nclusters: int, diccionario_colores: Di
     
 def plot_resultados_clustering(nclusters: int = 6, 
                                centro: str = 'CSR',
-                               plot_plotly_web: bool = False) -> Dict[str, str]:
+                               plot_plotly_web: bool = False,
+                               figure_width: int = 900) -> Dict[str, str]:
 
     
     n_clusters = int(nclusters)
@@ -382,7 +383,8 @@ def plot_resultados_clustering(nclusters: int = 6,
     if plot_plotly_web:
         df_toplot = df_toplot.query(f'clusters_{n_clusters}!="cluster_1"')
         df_toplot = df_toplot.query(f'clusters_{n_clusters}!="cluster_4"')
-    st.markdown('Visualizamos los clusters en el mapa')
+
+    df_toplot[f'clusters_{n_clusters}'] = df_toplot[f'clusters_{n_clusters}'].apply(lambda x: x.replace('_', ' '))
     fig = go.Figure()
     for cluster in df_toplot[f'clusters_{n_clusters}'].unique():
         mini_df = df_toplot.query(f'`clusters_{n_clusters}`==@cluster')
@@ -391,7 +393,7 @@ def plot_resultados_clustering(nclusters: int = 6,
             lon=mini_df["lon"],
             lat=mini_df["lat"],
             mode="markers",
-            marker=dict(size=5, color=mini_df[f'clusters_{n_clusters}'].map(diccionario_colores)),
+            marker=dict(size=5, color=mini_df[f'clusters_{n_clusters}'].apply(lambda x: diccionario_colores[x.replace(' ', '_')])),
             text=mini_df[f'clusters_{n_clusters}'],
             name=mini_df[f'clusters_{n_clusters}'].unique()[0],
             showlegend=True,
@@ -424,8 +426,8 @@ def plot_resultados_clustering(nclusters: int = 6,
             scope="world",
             showland=True,
         ),
-        width= 800, 
-        height=800, 
+        width= figure_width, 
+        height=figure_width, 
         margin={"r":0,"t":0,"l":0,"b":0}
     )
     if plot_plotly_web:
