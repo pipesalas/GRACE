@@ -18,16 +18,17 @@ def main():
 
     #plot_grace_picture()
     plot_web_clustering = False
-    st.title('Gravity Recovery and Climate Experiment :earth_americas: :satellite: ')
+    _, col_results, _ = st.columns([1, 4, 1])
 
-    st.subheader('Clustering GRACE time series:')   
+    with col_results:
+        st.title('Clustering GRACE time series :earth_americas: :satellite:')
 
-    col1, col2 = st.columns([1, 6])
-    col1.markdown('**Methodology:**')
-    
-    col2.write('''We are looking for geographical areas with similar trends in their time series.
-    For this, we need to interpolate the missing data. After that, we decompose each serie into a trend and seasonality. After that, we use the trends for clusterize each coordinate.
-               You can read more on our [medium article](https://medium.com/@felipe.salas.b/3a4890bd4428).''')
+        col1, col2 = st.columns([1, 6])
+        col1.markdown('**Methodology:**')
+        
+        col2.write('''We are looking for geographical areas with similar trends in their time series.
+        For this, we need to interpolate the missing data. After that, we decompose each serie into a trend and seasonality. After that, we use the trends for clusterize each coordinate.
+                You can read more on our [medium article](https://medium.com/@felipe.salas.b/3a4890bd4428).''')
 
     _, col1, col2, _ = st.columns(4)
     labs = {"Center for Space Research at University of Texas (CSR)": "CSR",
@@ -39,7 +40,9 @@ def main():
     num_cluster = col2.number_input('Select the number of clusters', 2, 10, 5)
 
     _, col_results, _ = st.columns([1, 4, 1])
+
     with col_results:
+
         with st.expander('1. How to choose the correct number of clusters'):
             st.subheader('1. Choosing the number of clusters')
             url_inertia = "https://scikit-learn.org/stable/modules/clustering.html#k-means"
