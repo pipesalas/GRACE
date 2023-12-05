@@ -17,7 +17,7 @@ def main():
                        page_icon=":satellite:",)
 
     #plot_grace_picture()
-    plot_web_clustering = True
+    plot_web_clustering = False
     st.title('Gravity Recovery and Climate Experiment :earth_americas: :satellite: ')
 
     st.subheader('Clustering GRACE time series:')   
@@ -38,40 +38,34 @@ def main():
     centro = labs[centro]
     num_cluster = col2.number_input('Select the number of clusters', 2, 10, 5)
 
+    _, col_results, _ = st.columns([1, 4, 1])
+    with col_results:
+        with st.expander('1. How to choose the correct number of clusters'):
+            st.subheader('1. Choosing the number of clusters')
+            url_inertia = "https://scikit-learn.org/stable/modules/clustering.html#k-means"
+            url_silhouette = "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html"
+            url_davies_bouldin = "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.davies_bouldin_score.html"
+            st.write("""Although choosing the right number of clusters is a hard decision, there are several heuristics that help us in that task.
+                    We have avaiable three metrics: [inertia](%s),  [silhouette score](%s) y [davies bouldin score](%s) which indicates how well clusterized was the data""" % (url_inertia, url_silhouette, url_davies_bouldin))
+            
+            plot_clustering_optimal_k(centro)
 
-    with st.expander('1. How to choose the correct number of clusters'):
-        st.subheader('1. Choosing the number of clusters')
-        url_inertia = "https://scikit-learn.org/stable/modules/clustering.html#k-means"
-        url_silhouette = "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html"
-        url_davies_bouldin = "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.davies_bouldin_score.html"
-        st.write("""Although choosing the right number of clusters is a hard decision, there are several heuristics that help us in that task.
-                 We have avaiable three metrics: [inertia](%s),  [silhouette score](%s) y [davies bouldin score](%s) which indicates how well clusterized was the data""" % (url_inertia, url_silhouette, url_davies_bouldin))
-        
-        plot_clustering_optimal_k(centro)
-
-    _,__ = st.columns([2, 6])
-
-    tab_mapa, tab_caracterizacion  = st.tabs(['Map of each cluster', 'Cluster characterization',])
-    with tab_mapa:
-
-        col1, col2 = st.columns([1.5, 1])
-        with col1:
+        tab_mapa, tab_caracterizacion, tab_numero_coordenadas  = st.tabs(['Map of each cluster', 'Cluster characterization', 'Number of coordinates of each cluster'])
+        with tab_mapa:
             diccionario_colores = plot_resultados_clustering(num_cluster, centro)
-        with col2:
+        
+        with tab_numero_coordenadas:
             plot_numero_coordenadas(centro, num_cluster, diccionario_colores)
 
 
-    with tab_caracterizacion:
-        st.subheader('Cluster interpretability')
-        st.write('''We can characterize each cluster by looking at a sample of trends that belong to it. 
-                 We can also look at the median of the sample to see the most representative trend of the cluster (the black curves)''')
-        col1, col2 = st.columns(2)
-        with col1:
-            plot_caracterizacion_clusters_resumen(num_cluster, centro, diccionario_colores, 750)
-        
-        with col2:
-        
-            plot_caracterizacion_clusters(num_cluster, centro, 750, plot_web_clustering)     
+        with tab_caracterizacion:
+            st.subheader('Cluster interpretability')
+            st.write('''We can characterize each cluster by looking at a sample of trends that belong to it. 
+                    We can also look at the median of the sample to see the most representative trend of the cluster (the black curves)''')
+
+            plot_caracterizacion_clusters_resumen(num_cluster, centro, diccionario_colores, 1000)
+            
+            plot_caracterizacion_clusters(num_cluster, centro, 1000)     
         
 
 
