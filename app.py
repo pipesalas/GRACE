@@ -22,15 +22,24 @@ def main():
 
     with col_results:
         st.title('Clustering GRACE time series :earth_americas: :satellite:')
-
-        col1, col2 = st.columns([1, 6])
-        col1.markdown('**Methodology:**')
+        with st.expander('Methodology'):
+            col1, col2 = st.columns([1, 7])
+            col1.markdown('**Methodology:**')
+            
+            col2.markdown('''We are looking for geographical areas with similar trends in their time series of level of water equivalence thickness.
+            For this:''')
+            col2.markdown('''
+                    1. The missing data is interpolated
+                        
+                    2. Each time serie is decomposed into a trend and seasonality. 
+                        
+                    3. After that, we use the trends for clusterize each coordinate using k-means.
+                        
+                    You can read more on our [medium article](https://medium.com/@felipe.salas.b/3a4890bd4428).''')
         
-        col2.write('''We are looking for geographical areas with similar trends in their time series.
-        For this, we need to interpolate the missing data. After that, we decompose each serie into a trend and seasonality. After that, we use the trends for clusterize each coordinate.
-                You can read more on our [medium article](https://medium.com/@felipe.salas.b/3a4890bd4428).''')
 
-    _, col1, col2, _ = st.columns(4)
+        st.markdown('''**Select a center and a number of clusters**''')
+    _, col1, col2, _ = st.columns([1,2,2,1])
     labs = {"Center for Space Research at University of Texas (CSR)": "CSR",
             "Jet Propulsion Laboratory (JPL)": "JPL",
             "GeoforschungsZentrum Potsdam (GFZ)": "GFZ"
